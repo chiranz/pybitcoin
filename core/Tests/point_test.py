@@ -1,6 +1,7 @@
+import unittest
 from unittest import TestCase
-from .point import Point
-from .field_element import FieldElement
+from ECC.Math.point import Point
+from ECC.Math.field_element import FieldElement
 
 
 class PointTest(TestCase):
@@ -23,8 +24,13 @@ class PointTest(TestCase):
     def test_add1(self):
         a = Point(x=3, y=7, a=5, b=7)
         b = Point(x=-1, y=-1, a=5, b=7)
-        self.assertEqual(a+b, Point(x=2, y=-5, a=5, b=7))
+        self.assertEqual(a + b, Point(x=2, y=-5, a=5, b=7))
 
     def test_add2(self):
-        a = Point(x=-1, y=-1, a=5, b=7)
-        self.assertEqual(a+a, Point(x=18, y=77, a=5, b=7))
+        a = Point(x=-1, y=1, a=5, b=7)
+        self.assertEqual(a + a, Point(x=18, y=-77, a=5, b=7))
+
+
+if __name__ == "__main__":
+
+    unittest.main()

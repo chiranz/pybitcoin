@@ -1,7 +1,7 @@
 class FieldElement:
 
     def __init__(self, num, prime):
-        if num >= prime or num <= 0:
+        if num >= prime or num < 0:
             raise ValueError(f' Num {num} not in field range 0 to {prime-1}')
         self.prime = prime
         self.num = num
@@ -24,17 +24,17 @@ class FieldElement:
     def __sub__(self, other):
         if self.prime != other.prime:
             return TypeError(f'Cannot substract two numbers in different fields.')
-        num = self.num - other.num % self.prime
+        num = (self.num - other.num) % self.prime
         return self.__class__(num, self.prime)
 
     def __mul__(self, other):
         if self.prime != other.prime:
             return TypeError(f'Cannot multiply two numbers in different fields.')
-        num = self.num * other.num % self.prime
+        num = (self.num * other.num) % self.prime
         return self.__class__(num, self.prime)
 
     def __pow__(self, exponent):
-        n = exponent % self.prime-1
+        n = exponent % (self.prime-1)
         num = pow(self.num, n, self.prime)
         return self.__class__(num, self.prime)
 
@@ -46,6 +46,10 @@ class FieldElement:
             # this means:
             # 1/n == pow(n, p-2, p)
             # we return an element of the same class
-        num = self.num * pow(other.num, self.prime - 2,
-                             self.prime) % self.prime
+        num = (self.num * pow(other.num, self.prime - 2,
+                              self.prime)) % self.prime
+        return self.__class__(num, self.prime)
+
+    def __rmul__(self, coefficient):
+        num = (self.num * coefficient) % self.prime
         return self.__class__(num, self.prime)
