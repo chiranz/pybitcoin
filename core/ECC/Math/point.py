@@ -42,7 +42,7 @@ class Point:
             return self.__class__(None, None, self.a, self.b)
 
         # When the point is vertical and is at y == 0
-        if self.x == other.x and self.y == 0:
+        if self == other and self.y == 0 * self.x:
             return self.__class__(None, None, self.a, self.b)
 
         # When the points are different
