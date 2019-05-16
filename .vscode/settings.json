@@ -1,5 +1,15 @@
 {
   "python.pythonPath": "/home/chiranz/.local/share/virtualenvs/pybitcoin-4q5G716h/bin/python",
   "python.linting.pylintEnabled": true,
-  "python.linting.enabled": true
+  "python.linting.enabled": true,
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    "./core",
+    "-p",
+    "*_test.py"
+  ],
+  "python.testing.pyTestEnabled": false,
+  "python.testing.nosetestsEnabled": false,
+  "python.testing.unittestEnabled": true
 }
