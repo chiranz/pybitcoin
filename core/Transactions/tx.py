@@ -26,24 +26,24 @@ class TxFetcher:
     @classmethod
     def fetch(cls, tx_id, testnet=False, fresh=False):
         if fresh or (tx_id not in cls.cache):
-        url = f'{cls.get_url(testnet)}/tx/{tx_id}.hex'
-        response = requests.get(url)
+            url = f'{cls.get_url(testnet)}/tx/{tx_id}.hex'
+            response = requests.get(url)
 
-        try:
-            raw = bytes.fromhex(response.text.strip())
-        except ValueError:
-            raise ValueError(f'unexpected response: {response.text}')
+            try:
+                raw = bytes.fromhex(response.text.strip())
+            except ValueError:
+                raise ValueError(f'unexpected response: {response.text}')
 
-        if raw[4] == 0:
-            raw = raw[:4] + raw[6:]
-            tx = Tx.parse(BytesIO(raw), testnet=testnet)
-            tx.locktime = little_endian_to_int(raw[-4:])
-        else:
-            tx = Tx.parse(BytesIO(raw), testnet=testnet)
-        if tx.id != tx_id:
-            raise ValueError(f'not the same id: {tx.id()} vs {tx_id}')
+            if raw[4] == 0:
+                raw = raw[:4] + raw[6:]
+                tx = Tx.parse(BytesIO(raw), testnet=testnet)
+                tx.locktime = little_endian_to_int(raw[-4:])
+            else:
+                tx = Tx.parse(BytesIO(raw), testnet=testnet)
+            if tx.id != tx_id:
+                raise ValueError(f'not the same id: {tx.id()} vs {tx_id}')
 
-        cls.cache[tx_id] = tx
+            cls.cache[tx_id] = tx
         cls.cache[tx_id].testnet = testnet
         return cls.cache[tx_id]
 
@@ -95,15 +95,20 @@ class Tx:
     def hash(self):
         '''Binary hash of the legacy serialization'''
         return hash256(self.serialize())[::-1]
-
+        
+    @classmethod
     def parse(cls, s, testnet=False):
         version = little_endian_to_int(s.read(4))
         num_inputs = read_variant(s)
         inputs = []
         for _ in range(num_inputs):
             inputs.append(TxIn.parse(s))
-            
-        return cls(version, inputs, None, None, testnet)
+        num_outputs = read_variant(s)
+        outputs = []
+        for _ in range(num_outputs):
+            outputs.append(TxOut.parse(s))
+        locktime = little_endian_to_int(s.read(4))
+        return cls(version, inputs, outputs, locktime, testnet)
 
     def serialize(self):
         '''Returns the byte serialization of the transaction.'''
@@ -117,10 +122,15 @@ class Tx:
         result += int_to_little_endian(self.locktime, 4)
         return result
 
-    def fee(self):
+    def fee(self, testnet=False):
         '''Returns fee of the transaction in satoshis'''
-        raise NotImplementedError
-        
+        input_sum , output_sum = 0, 0
+        for tx_in in self.tx_ins:
+            input_sum += tx_in.value(testnet)
+        for tx_out in self.tx_outs:
+            output_sum += tx_out.amount
+        return input_sum-output_sum
+
         
 class TxIn:
     def __init__(self, prev_tx, prev_index, script_sig=None, sequence= 0xffffffff):
